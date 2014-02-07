@@ -18,6 +18,8 @@ CSV.foreach("data/history-raw.csv") do |row|
         case 
         when row[1] == "1" 
             current_record[:id] = row[7]
+        when row[1] == "020"
+            current_record[:isbn] = row[7]
         when row[1] == "100"
             current_record[:author] = row[7]
         when row[1] == "245"
@@ -75,7 +77,7 @@ dataframe.push current_record
 
 # Now make the CSV
 
-column_names = [:id, :author, :title, :pages, :year, :source, :advisers,
+column_names = [:id, :isbn, :author, :title, :pages, :year, :source, :advisers,
                 :abstract1, :abstract2, :abstract3, :abstract4, :abstract5,
                 :abstract6, :schoolcode, :subject1, :subject2, :subject3,
                 :subject4, :university, :department, :degree, :url]
