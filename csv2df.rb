@@ -30,8 +30,10 @@ CSV.foreach("data/history-raw.csv") do |row|
             match = /Source:\s/.match(row[7])
             current_record[:source] = match.post_match.to_s if match
         when row[1] == "500" && row[2] == "2"
+            # Apparently a field with all the advisers (or only one) listed.
+            # Takes the form "Adviser(s): names"
             match = /Adviser(s?):\s+/.match(row[7])
-            current_record[:advisers] = match.post_match.to_s if match
+            current_record[:committee] = match.post_match.to_s if match
         when row[1] == "502" 
             current_record[:year] = /\d+/.match(row[7]).to_s
         when row[1] == "520" && row[2] == "1"
@@ -60,6 +62,21 @@ CSV.foreach("data/history-raw.csv") do |row|
             current_record[:university] = row[7]
         when row[1] == "710" && row[5] == "b"
             current_record[:department] = row[7]
+        when row[1] == "790" && row[2] == "1" && row[5] == "a"
+            # Explicitly listed as adviser
+            current_record[:adviser1] = /\D+/.match(row[7]).to_s
+        when row[1] == "790" && row[2] == "2" && row[5] == "a"
+            # Explicitly listed as committee member
+            current_record[:adviser2] = /\D+/.match(row[7]).to_s
+        when row[1] == "790" && row[2] == "3" && row[5] == "a"
+            # Explicitly listed as committee member
+            current_record[:adviser3] = /\D+/.match(row[7]).to_s
+        when row[1] == "790" && row[2] == "4" && row[5] == "a"
+            # Explicitly listed as committee member
+            current_record[:adviser4] = /\D+/.match(row[7]).to_s
+        when row[1] == "790" && row[2] == "5" && row[5] == "a"
+            # Explicitly listed as committee member
+            current_record[:adviser5] = /\D+/.match(row[7]).to_s
         when row[1] == "791"
             current_record[:degree] = row[7]
         when row[1] == "856"
@@ -80,7 +97,8 @@ dataframe.push current_record
 column_names = [:id, :isbn, :author, :title, :pages, :year, :source, :advisers,
                 :abstract1, :abstract2, :abstract3, :abstract4, :abstract5,
                 :abstract6, :schoolcode, :subject1, :subject2, :subject3,
-                :subject4, :university, :department, :degree, :url]
+                :subject4, :university, :department, :adviser1, :adviser2, 
+                :adviser3, :adviser4, :adviser5, :degree, :url]
 
 CSV.open("data/history-df.csv", "w") do |csv|
     csv << column_names
