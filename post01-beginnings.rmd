@@ -12,7 +12,15 @@ I want to ask some related questions, but I hoped to gather as comprehensive a d
 
 From the MARC records that ProQuest gave me, I've been able to extract a number of fields, only some of which are available for each record. There is a ProQuest assigned ID number and sometimes an ISBN. Items always have an author and a title, and almost always a page count and a year of graduation. Many of the dissertations have an abstract, which I think will be useful for mining the topics that historians have studied. There are also Library of Congress subject fields, but these are usually very generic. Almost always a university is listed, along with a "school code" which I think standardizes university names; sometimes a department is listed as well. Some items have the lead adviser and other committee members listed separately; some mash them together; still others don't have the information at all. I'm hoping the adviser data will let me trace scholarly generations. The degree conferred is always listed. And finally there is a URL to a [ProQuest record](http://gateway.proquest.com/openurl?url_ver=Z39.88-2004&rft_val_fmt=info:ofi/fmt:kev:mtx:dissertation&res_dat=xri:pqm&rft_dat=xri:pqdiss:7928093). For reasons I don't understand, the ProQuest online record has different fields than the MARC dump.
 
+The historical dissertations data contains 132,360 records. But not all of those are dissertations. There are 94,530 PhD dissertations and 23,362 MA theses; the rest are scattered among many different degrees. Furthermore, not all of the dissertations and theses are historical, whether one limits that category narrowly to dissertations produced in history departments or more broadly to dissertations with a historical methodology. Limiting the data to items whose primary subject heading is somehow related to history, we are left with 86,237 dissertations and theses. In summary, the data contain 64,299 history PhDs and 11,929 history MAs.
 
-```{r fig.width=7, fig.height=6}
+```{r}
+ggplot(filter(h_diss, year > 1800)) +
+  geom_histogram(aes(x = year), binwidth = 1)
+
+# THE CURRENT PROBLEM IS THAT HISTORY DISSERTATIONS DROP OFF IN THE 1990s
+# AND THAT CAN'T BE RIGHT
+temp <- summarise(group_by(h_diss, year), length(id))
+temp <- arrange(temp, year)
 ```
 
