@@ -84,20 +84,25 @@ The mean length is longer by `r round(mean(average_pages$mean[41:104] - average_
 
 I don't have a good explanation for these fluctuations. Could dissertations have gotten shorter from 1958 to 1972 because of a shift from narrative or political history to social history? Then could they have gotten longer from 1972 to 1988 because of the rise of cultural history? I suppose, though the dates feel vaguely off. What explains why dissertations got shorter through the 1990s and 2000s? I think matching this data up to time-to-degree data and job market data might prove fruitful.
 
-It's not enough to look at the mean or median dissertation length, given that there is such an enormous variation in the permissible length of dissertations. Another helpful way to look at the data is to g
+It's not enough to look at the mean or median dissertation length, given that there is such an enormous variation in the permissible length of dissertations. Another helpful way to look at the data is to see the distribution of the quartiles. (This chart cuts off many outliers above 800 pages long.)
 
 ```{r}
-ggplot(data = h_diss,
-       aes(x = cut(year, pretty(year)),
+ggplot(data = filter(h_diss, year >= 1945, year <= 2012),
+       aes(x = cut(year, pretty(year, 10)),
            y = pages)) +
-  geom_boxplot() + 
-  short_scale + 
-  page_scale(0, 1500, 100) +
-  theme(axis.text.x=element_text(angle=25, hjust=1))
+  geom_boxplot(outlier.colour = "#777777", outlier.size = 1.5) + 
+  page_scale(0, 800, 100) +
+  theme(axis.text.x=element_text(angle=25, hjust=1)) +
+  xlab(NULL) +
+  ylab("Pages") +
+  ggtitle("Distribution of Page Lengths for History Dissertations, 1945-2012")
 ```
 
+The boxes in this chart show the middle 50 percent of dissertations for each half decade. We might interpret this as the typical range for most dissertations. Even typical dissertations fluctuate in length, so that the low end of typical can be 70 pages shorter than median, and the high end of typical can be 50 or 60 pages more than median. But many dissertations come in shorter, and there is a very high upper bound to the maximum length of dissertations.
 
-In summary, What does this data about page lengths say about history dissertations? It says that your adviser was right when she said that the dissertation will be done when you've written what you need to write.
+Next up, I'll compare the typical length of dissertations for the academy as a whole to the length of dissertations at specific departments. 
+
+In summary, what does this data about page lengths say about history dissertations? It says that your adviser was right when she said that the dissertation will be done when you've written what you need to write.
 
 ****************************************************************************
 
