@@ -1,0 +1,119 @@
+# Analyzing Historical History Dissertations: Page Counts
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(reshape2)
+library(knitr)
+source("load.r")
+```
+
+```{r}
+# Some standard scales for chart labels
+short_scale <- scale_x_continuous(breaks = seq(1950, 2010, 10),
+                                  labels = seq(1950, 2010, 10),
+                                  limits = c(1945, 2012))
+
+long_scale <-  scale_x_continuous(breaks = seq(1880, 2010, 10),
+                                  labels = seq(1880, 2010, 10),
+                                  limits = c(1878, 2012))
+
+page_scale <- function(min_pages, max_pages, increment) {
+  scale <- scale_y_continuous(breaks = seq(min_pages, max_pages, increment),
+                              labels = seq(min_pages, max_pages, increment),
+                              limits = c(min_pages, max_pages))
+  return(scale)
+}
+```
+
+The first question anyone writing a dissertation probably asks is, How long should this thing be? When Michael Beck looked at data from the University of Minnesota, he found that [history dissertations were the longest](http://beckmw.wordpress.com/2013/04/15/how-long-is-the-average-dissertation/). Ben Schmidt found that the average length of history dissertations at Princeton [varied quite a bit](http://rpubs.com/benmschmidt/princetonhistorydiss), from a peak of about 425 pages on average around 1995 to a low of slightly more than 250 pages on average around 2006 or 2007. Ben also concluded that "300 pages is the normal length."
+
+Using the ProQuest data, we can see how history dissertations varied in length over time:
+
+```{r}
+ggplot(h_diss, aes(x = year, y = pages)) +
+  geom_jitter(alpha = 0.05) +
+  geom_smooth(color = "red") +
+  long_scale +
+  ggtitle("Page Count of History Dissertations, 1878-2012") +
+  xlab(NULL) +
+  ylab("Pages") +
+  page_scale(0, 1500, 100)
+```
+
+The more useful view is to look at just dissertations since 1945:
+
+```{r}
+ggplot(h_diss, aes(x = year, y = pages)) +
+  geom_jitter(alpha = 0.05) +
+  geom_smooth(color = "red") +
+  short_scale +
+  ggtitle("Page Count of History Dissertations, 1945-2012") +
+  xlab(NULL) +
+  ylab("Pages") +
+  page_scale(0, 600,50)
+```
+
+We can make a few observations. First, the average length of dissertations is remarkably stable. From 1880 to 1930, history dissertations get quite a bit longer. But since from the 1950s to the present, the average length of dissertations has fluctuated within a relatively narrow band. That band is relatively narrow, that is, in relation to the huge overall variation in the length of history dissertations, which have a normal range between 150 and 600 pages. The acceptable range can even go a little lower than 150 pages, and it can go much, much higher than 600 pages.
+
+We can be more precise about typical length of a history dissertation by plotting the mean and median. (If you prefer, you can see that data in tabular form at the end of the post.) 
+
+```{r}
+average_pages <- summarise(group_by(h_diss, year), 
+                           mean = round(mean(pages, na.rm = TRUE)),
+                           median = median(pages, na.rm = TRUE))
+average_pages <- arrange(average_pages, year)
+average_pages_melted <- melt(average_pages, id = "year")
+```
+
+```{r}
+ggplot(average_pages_melted) +
+  geom_line(data = average_pages_melted,
+    aes(x = year, y = value, color = variable)) +
+  short_scale +
+  page_scale(275, 400,25) +
+  labs(color = NULL) +
+  ylab("Pages") +
+  xlab(NULL) +
+  ggtitle("Mean and Median Length of History Dissertations, 1945-2012")
+```
+
+
+
+The mean length is longer by `r round(mean(average_pages$mean[41:104] - average_pages$median[41:104]))` pages on average than the median length, as you would expect since the permissible maximum length for a dissertation is much more flexible than the permissible minimum length. But the two measures fluctuate more or less in tandem. From a peak in 1958 to a trough in 1972, dissertations got shorter by about 45 pages. Then from 1972 dissertations gradually got longer till they reached a peak in 1988 about 55 pages longer. Since 1988 dissertations are getting shorter, with 2012 being a low with a mean of 331 and a median of 306. 
+
+I don't have a good explanation for these fluctuations. Could dissertations have gotten shorter from 1958 to 1972 because of a shift from narrative or political history to social history? Then could they have gotten longer from 1972 to 1988 because of the rise of cultural history? I suppose, though the dates feel vaguely off. What explains why dissertations got shorter through the 1990s and 2000s? I think matching this data up to time-to-degree data and job market data might prove fruitful.
+
+It's not enough to look at the mean or median dissertation length, given that there is such an enormous variation in the permissible length of dissertations. Another helpful way to look at the data is to g
+
+```{r}
+ggplot(data = h_diss,
+       aes(x = cut(year, pretty(year)),
+           y = pages)) +
+  geom_boxplot() + 
+  short_scale + 
+  page_scale(0, 1500, 100) +
+  theme(axis.text.x=element_text(angle=25, hjust=1))
+```
+
+
+In summary, What does this data about page lengths say about history dissertations? It says that your adviser was right when she said that the dissertation will be done when you've written what you need to write.
+
+****************************************************************************
+
+```{r}
+# Some calculations 
+short_diss <- filter(h_diss, pages < 100)
+short_diss <- arrange(short_diss, pages)
+
+long_diss <- filter(h_diss, pages > 1500)
+long_diss <- arrange(long_diss, desc(pages))
+```
+
+Some caveats: There are definitely errors in the data, for example, a six page dissertation from Princeton advised by Robert Darnton. (Sweet deal, if you can get it.) But there are only `r nrow(short_diss)` dissertations with fewer than 100 pages, and only `r nrow(long_diss)` dissertations with greater than 1500 pages, so I don't think these errors skew the data that much. Though it is scarcely believable, the dissertations above 1500 are probably not all errors, either. Another problem is that we're deal  g with number of pages rather than word counts, and the number of words per page presumably changes with different writing technologies. (The definition of a word, on the other hand, is stable and timeless, even eternal.) Fortunately the timebound and hideous formatting requirements for dissertations that universitites impose probably keep this variation in check.
+
+#### Mean and Median Length of History Dissertations, 1945-2012
+
+```{r}
+kable(filter(average_pages, year >= 1945), format = "pandoc")
+```
