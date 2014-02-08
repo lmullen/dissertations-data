@@ -9,6 +9,12 @@ source("load.r")
 ```
 
 ```{r}
+opts_chunk$set(fig.width = 16, height = 14)
+theme_set(theme_gray(base_size = 12))
+```
+
+
+```{r}
 # Some standard scales for chart labels
 short_scale <- scale_x_continuous(breaks = seq(1950, 2010, 10),
                                   labels = seq(1950, 2010, 10),
@@ -30,7 +36,7 @@ The first question anyone writing a dissertation probably asks is, How long shou
 
 Using the ProQuest data, we can see how history dissertations varied in length over time:
 
-```{r}
+```{r pages-since-1878}
 ggplot(h_diss, aes(x = year, y = pages)) +
   geom_jitter(alpha = 0.05) +
   geom_smooth(color = "red") +
@@ -43,7 +49,7 @@ ggplot(h_diss, aes(x = year, y = pages)) +
 
 The more useful view is to look at just dissertations since 1945:
 
-```{r}
+```{r pages-since-1945}
 ggplot(h_diss, aes(x = year, y = pages)) +
   geom_jitter(alpha = 0.05) +
   geom_smooth(color = "red") +
@@ -66,7 +72,7 @@ average_pages <- arrange(average_pages, year)
 average_pages_melted <- melt(average_pages, id = "year")
 ```
 
-```{r}
+```{r pages-mean-median}
 ggplot(average_pages_melted) +
   geom_line(data = average_pages_melted,
     aes(x = year, y = value, color = variable)) +
@@ -86,7 +92,7 @@ I don't have a good explanation for these fluctuations. Could dissertations have
 
 It's not enough to look at the mean or median dissertation length, given that there is such an enormous variation in the permissible length of dissertations. Another helpful way to look at the data is to see the distribution of the quartiles. (This chart cuts off many outliers above 800 pages long.)
 
-```{r}
+```{r pages-boxplot}
 ggplot(data = filter(h_diss, year >= 1945, year <= 2012),
        aes(x = cut(year, pretty(year, 10)),
            y = pages)) +
@@ -119,6 +125,6 @@ Some caveats: There are definitely errors in the data, for example, a six page d
 
 #### Mean and Median Length of History Dissertations, 1945-2012
 
-```{r}
+```{r pages-table}
 kable(filter(average_pages, year >= 1945), format = "pandoc")
 ```
