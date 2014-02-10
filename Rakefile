@@ -26,3 +26,9 @@ task :default => ["data/history-df.csv", :analysis]
 require "rake/clean"
 CLEAN.include("figure/*.png", "*.md", "*.html", "*.Rout")
 CLOBBER.include("data/history-raw.csv", "data/history-df.csv")
+
+desc "Copy figures to blog directory"
+task :copy_to_blog do
+  blog_img  = "/home/lmullen/dev/lincolnmullen.com/source/downloads/historical-dissertations/"
+  Dir.glob("figure/*.png") {|f| FileUtils.cp File.expand_path(f), blog_img }
+end
