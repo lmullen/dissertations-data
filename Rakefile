@@ -1,5 +1,8 @@
 # Build process for research into historical dissertations
 
+KNITR_FILES = FileList["*.rmd"]
+OUTPUT_MDS  = KNITR_FILES.ext(".md")
+
 desc "Convert the history MARC file into a CSV"
 file "data/history-raw.csv" => "/home/lmullen/research-data/proquest-dissertations/history_utf8.mrc" do |t|
   sh "./marc2csv.py #{t.prerequisites.join(' ')}"
@@ -11,13 +14,15 @@ file "data/history-df.csv" => "data/history-raw.csv" do |t|
   sh "./csv2df.rb"
 end
 
-desc "Run the files that perform the analysis for each blog post"
-task :analysis => "data/history-df.csv" do 
-  sh "R --vanilla CMD BATCH main.r"
+rule ".md" => ".rmd" do |t|
+  sh %[Rscript --vanilla -e "library(knitr); knit('#{t.source}');"]
 end
 
-task :default => [:analysis] 
+desc "Run knitr on all the analysis files"
+task :analysis => OUTPUT_MDS
+
+task :default => ["data/history-df.csv", :analysis] 
 
 require "rake/clean"
-CLEAN.include("data/*.png", "*.md", "*.html", "*.Rout")
+CLEAN.include("figure/*.png", "*.md", "*.html", "*.Rout")
 CLOBBER.include("data/history-raw.csv", "data/history-df.csv")
