@@ -1,6 +1,6 @@
 # Analyzing Historical History Dissertations: Beginnings
 
-```{r}
+```{r load-data}
 library(dplyr)
 library(ggplot2)
 library(knitr)
@@ -17,13 +17,13 @@ The historical dissertations data contains 132,360 records. But not all of those
 
 For a first plot of the data, we can look at the number of dissertations and theses over time. Because there were so few dissertations in the late nineteenth and early twentieth century (I suspect some are missing), let's limit the plot to the years after 1950.
 
-```{r}
+```{r how-many-degrees}
 # Figure out the number of each degree per year and plot it
 degrees_per_year <- summarise(group_by(h_all, degree, year), count = length(id))
 degrees_per_year <- arrange(degrees_per_year, year)
 ```
 
-```{r, fig.width=8, fig.height=6}
+```{r degrees-per-year, fig.width=8, fig.height=6}
 ggplot(degrees_per_year, aes(x = year, y = count, color = degree)) +
   geom_point() +
   geom_line() +
