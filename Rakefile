@@ -11,5 +11,13 @@ file "data/history-df.csv" => "data/history-raw.csv" do |t|
   sh "./csv2df.rb"
 end
 
+desc "Run the files that perform the analysis for each blog post"
+task :analysis => "data/history-df.csv" do 
+  sh "R --vanilla CMD BATCH main.r"
+end
+
+task :default => [:analysis] 
+
 require "rake/clean"
+CLEAN.include("data/*.png", "*.md", "*.html", "*.Rout")
 CLOBBER.include("data/history-raw.csv", "data/history-df.csv")
