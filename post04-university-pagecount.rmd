@@ -1,0 +1,58 @@
+# Analyzing Historical History Dissertations: Page Counts by University
+
+```{r load-libraries-data}
+library(ggplot2)
+library(stringr)
+library(dplyr)
+```
+
+```{r count-disses-at-universities}
+university_count <- summarise(group_by(h_diss, university), count = length(id))
+university_count <- arrange(university_count, desc(count))
+```
+
+```{r define-scales}
+# Some standard scales for chart labels
+short_scale <- scale_x_continuous(breaks = seq(1950, 2010, 10),
+                                  labels = seq(1950, 2010, 10),
+                                  limits = c(1945, 2012))
+
+page_scale <- function(min_pages, max_pages, increment) {
+  scale <- scale_y_continuous(breaks = seq(min_pages, max_pages, increment),
+                              labels = seq(min_pages, max_pages, increment),
+                              limits = c(min_pages, max_pages))
+  return(scale)
+}
+```
+
+```{r}
+for (uni_name in university_count$university[1:150]) {
+  fname <- str_c("pages-", 
+                tolower(str_replace_all(uni_name, ' ', '-')),
+                "png")
+  png(filename = str_c("figure/", fname),
+      width = 800, height = 600)
+  plot <- ggplot(data = filter(h_diss, str_detect(university, uni_name)),
+                 aes(x = year, y = pages)) +
+    geom_jitter(color = "cornflowerblue", alpha = 0.75) +
+    geom_smooth(color = "darkblue") +
+    geom_smooth(data = h_diss, aes(x = year, y = pages), color = "red") +
+    short_scale +
+    page_scale(0, 1000, 100) +
+    ggtitle(str_c("Length of history dissertations, profession (red) vs ",
+                  uni_name, " (blue)")) +
+    xlab(NULL) +
+    ylab("Pages")
+  print(plot)
+  dev.off()
+}
+```
+
+```{r list-image-links}
+for (uni_name in university_count$university[1:150]) {
+  fname <- str_c("pages-", 
+                tolower(str_replace_all(uni_name, ' ', '-')),
+                "png")
+  cat(str_c("{% img /downloads/historical-dissertations/", fname, " %}\n"))
+}
+```
