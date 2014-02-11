@@ -4,6 +4,7 @@
 library(ggplot2)
 library(stringr)
 library(dplyr)
+source("load.r")
 ```
 
 ```{r count-disses-at-universities}
@@ -25,8 +26,28 @@ page_scale <- function(min_pages, max_pages, increment) {
 }
 ```
 
-```{r}
-for (uni_name in university_count$university[1:150]) {
+In the [last post](http://lincolnmullen.com/blog/analyzing-historical-history-dissertations-page-counts/), I looked at the changing lengths of history dissertations over time. For context, here is the most significant chart:
+
+{% img /downloads/historical-dissertations/pages-mean-median.png %}
+
+There are probably at least four factors influencing the length of the dissertation:
+
+1. the topic chosen by the author and the author's approach as a scholar,
+2. the requirements of an adviser or committee,
+3. the requirements at a department or university, and
+4. changes in the profession as a whole.
+
+The chart above tries to capture the trends in the profession. But in many ways the changes in a department or university might be more interesting, and they certainly would seem to have a more immediate causal effect on dissertation authors. 
+
+Here are charts of the all the universities with more than 50 dissertations in the data set. (See below for caveats.) What surprised me is that the trend for many departments tracks closely to the profession as a whole. Can we say that intellectual and job-market trends have a bigger influence on the length of dissertations than departments and universities?
+
+There are some universities, though, that diverge sharply from the general trend. Brandeis (my own department) was founded relatively recently, and the length of dissertations grew steadily from the 1960s to the 1980s as the department established its reputation, then dissertations lengths returned to the general trend. UC Berkley dissertations were slightly longer than the general trend, but after 2008 or 2009 the length of dissertations shortens considerably. Does this reflect a change in policy in the department or university, or to the financial challenges that California faced in the financial crisis?  
+
+Finally, you might be able to detect some variation based on the prestige of the university. It seems like you could say that less prestigious institutions have shorter dissertations than the general trend, and that there is less opportunity for very long dissertations at those institutions. And you might also observe that more prestigious institutions tend to have dissertations that are longer than the general trend. But it's easy to find exceptions, and I wouldn't press the point.
+
+```{r create-pngs-by-university}
+# for (uni_name in university_count$university[1:179]) {
+  uni_name <- "The Jewish Theological Seminary of America."
   fname <- str_c("pages-", 
                 tolower(str_replace_all(uni_name, ' ', '-')),
                 "png")
@@ -45,14 +66,28 @@ for (uni_name in university_count$university[1:150]) {
     ylab("Pages")
   print(plot)
   dev.off()
-}
+# }
 ```
 
 ```{r list-image-links}
-for (uni_name in university_count$university[1:150]) {
+for (uni_name in university_count$university[1:179]) {
   fname <- str_c("pages-", 
                 tolower(str_replace_all(uni_name, ' ', '-')),
                 "png")
+  cat("\n")
+  cat(str_c(uni_name, "\n"))
   cat(str_c("{% img /downloads/historical-dissertations/", fname, " %}\n"))
 }
+```
+
+*************************************************************
+
+Caveats: Obviously, the data for some universities only becomes available at a certain point. Harvard, for example, did not start granting the PhD around 1980. This points out a limitation in the data set as a whole. Second, there are more universities granting PhDs about a topic in history than there are PhD granting history departments. So again, we're looking at dissertations about history rather than dissertations in history departments.
+
+Here is a table of the number of dissertations by university in the data set.
+
+**Number of Dissertations by University**
+
+```{r dissertations-by-university-table}
+kable(university_count[1:179,], format = "pandoc")
 ```

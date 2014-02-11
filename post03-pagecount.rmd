@@ -9,7 +9,7 @@ source("load.r")
 ```
 
 ```{r set-options}
-opts_chunk$set(fig.width = 16, height = 14)
+opts_chunk$set(fig.width = 11, height = 7.75)
 theme_set(theme_gray(base_size = 12))
 ```
 
