@@ -63,3 +63,6 @@ h_all  <- filter(historical, degree == "M.A." | degree == "Ph.D.")
 h_ma   <- filter(historical, degree == "M.A.")
 h_diss <- filter(historical, degree == "Ph.D.")
 
+# Remove some temporary objects we no longer need
+rm(import)
+
