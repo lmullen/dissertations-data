@@ -57,8 +57,6 @@ degree_count <- arrange(degree_count, count)
 # Throw away a few data points that have bad years.
 historical <- filter(historical, year > 1800)
 
-# Having limited the data frame to historical work, let's limit it to PhDs and MAs
-h_all  <- filter(historical, degree == "M.A." | degree == "Ph.D.")
-h_ma   <- filter(historical, degree == "M.A.")
-h_diss <- filter(historical, degree == "Ph.D.")
+# Having limited the data frame to historical work, let's limit it to PhDs 
+h_diss2 <- filter(historical, degree == "Ph.D.")
 
