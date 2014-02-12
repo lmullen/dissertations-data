@@ -54,18 +54,6 @@ degree_count <- arrange(degree_count, count)
 # Throw away a few data points that have bad years.
 historical <- filter(historical, year > 1800)
 
-# Geocode
-# universities <- data.frame(
-#   name = levels(as.factor(historical$university))
-#   )
-# geocoded <- geocode(as.character(universities$name),
-#                     override_limit = TRUE)
-# universities$lon <- geocoded$lon
-# universities$lat <- geocoded$lat
-# 
-# historical_geo <- merge(historical, universities,
-#                         by.x = "university", by.y = "name", all.x = TRUE)
-
 # Having limited the data frame to historical work, let's limit it to PhDs and MAs
 h_all  <- filter(historical, degree == "M.A." | degree == "Ph.D.")
 h_ma   <- filter(historical, degree == "M.A.")

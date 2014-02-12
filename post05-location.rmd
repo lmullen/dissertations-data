@@ -1,0 +1,33 @@
+# Analyzing Historical History Dissertations: Location
+
+```{r load-packges-data}
+library(ggplot2)
+library(dplyr)
+library(ggmap)
+library(maps)
+source("load.r")
+```
+
+
+```{r count-disses-at-universities}
+university_count <- summarise(group_by(h_diss, university), count = length(id))
+university_count <- arrange(university_count, desc(count))
+
+```
+
+```{r geocode-universities}
+geocoded <- geocode(university_count$university)
+university_count$lon <- geocoded$lon
+university_count$lat <- geocoded$lat
+university_count <- filter(university_count, !is.na(lon))
+write.csv(university_count, "location/universities-geocoded.csv")
+```
+
+```{r mockup-map}
+state <- map_data("state")
+
+ggplot(university_count) +
+  geom_path(data = state, aes(x = long, y = lat, group = group)) +
+  geom_point(aes(x = lon, y = lat, size = count), color = "red")
+```
+
