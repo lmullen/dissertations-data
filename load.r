@@ -1,3 +1,7 @@
+# load.r
+# This is the script I used to load and clean the data for posts 1-5. 
+# It has been superceded for later posts, which clean the data better.
+
 # Read the historical history dissertations data
 import <- read.csv("data/history-df.csv", stringsAsFactors=F)
 
