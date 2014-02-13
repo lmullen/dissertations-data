@@ -46,8 +46,7 @@ There are some universities, though, that diverge sharply from the general trend
 Finally, you might be able to detect some variation based on the prestige of the university. It seems like you could say that less prestigious institutions have shorter dissertations than the general trend, and that there is less opportunity for very long dissertations at those institutions. And you might also observe that more prestigious institutions tend to have dissertations that are longer than the general trend. But it's easy to find exceptions, and I wouldn't press the point.
 
 ```{r create-pngs-by-university}
-# for (uni_name in university_count$university[1:179]) {
-  uni_name <- "The Jewish Theological Seminary of America."
+for (uni_name in university_count$university[1:179]) {
   fname <- str_c("pages-", 
                 tolower(str_replace_all(uni_name, ' ', '-')),
                 "png")
