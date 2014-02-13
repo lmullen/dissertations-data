@@ -318,6 +318,18 @@ more_unis_to_cut <- more_unis_to_cut$university
 h_diss2 <- h_diss2 %.%
   filter(!(university %in% more_unis_to_cut))
 
+unis_to_keep <- university_count$university[1:146]
+
+# Make a smaller version for the web
+h_diss2_web <- h_diss2 %.%
+  select(pages, university, year) %.%
+  filter(1950 <= year, year <= 2012)  %.%
+  filter(university %in% unis_to_keep)
+
+write.csv(h_diss2, "data/h_diss2.csv", row.names = FALSE)
+write.csv(h_diss2_web, "pages-d3/h_diss2_web.csv", row.names = FALSE)
+write.csv(university_count, "data/university_count.csv", row.names = FALSE)
+
 # Clean up unneeded objects
-rm(historical_subjects, universities_to_delete, 
-   raw, historical, more_unis_to_cut)
+rm(historical_subjects, universities_to_delete, raw, historical,
+   more_unis_to_cut, h_diss2_web, unis_to_keep)
