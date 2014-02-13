@@ -65,7 +65,7 @@ for (uni_name in university_count$university[1:179]) {
     ylab("Pages")
   print(plot)
   dev.off()
-# }
+}
 ```
 
 ```{r list-image-links}

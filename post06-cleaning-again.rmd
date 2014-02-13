@@ -6,7 +6,6 @@ library(stringr)
 library(ggplot2)
 library(reshape2)
 library(knitr)
-library(foreach)
 opts_chunk$set(fig.width = 11, height = 7.75)
 theme_set(theme_gray(base_size = 12))
 source("load.r")
@@ -169,7 +168,7 @@ ggplot(average_pages_melted) +
 
 Third, a map of the locations where history dissertations were written.
 
-```{r}
+```{r read-geocoded-universities}
 university_count <- read.csv("location/universities-geocoded-2.csv")
 ```
 
@@ -274,7 +273,7 @@ for (uni_name in university_count$university[1:179]) {
     ylab("Pages")
   print(plot)
   dev.off()
-# }
+}
 ```
 
 ```{r list-image-links}
