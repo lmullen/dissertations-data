@@ -9,12 +9,12 @@ import <- read.csv("data/history-df.csv", stringsAsFactors=F)
 import[import == ""] <- NA
 
 # Figure out the top subjects for the primary heading
-subject_count <- summarise(group_by(import, subject1), count = length(id)) 
-subject_count <- arrange(subject_count, desc(count), subject1)
+# subject_count <- summarise(group_by(import, subject1), count = length(id)) 
+# subject_count <- arrange(subject_count, desc(count), subject1)
 
 # Figure out the top subjects for the secondary heading
-subject_count2 <- summarise(group_by(import, subject2), count = length(id)) 
-subject_count2 <- arrange(subject_count2, desc(count), subject2)
+# subject_count2 <- summarise(group_by(import, subject2), count = length(id)) 
+# subject_count2 <- arrange(subject_count2, desc(count), subject2)
 
 # Limit the data frame to only historical subjects
 historical_subjects <- c("Art History.",
@@ -52,8 +52,8 @@ historical <- filter(import, subject1 %in% historical_subjects |
                              subject4 %in% historical_subjects)
 
 # Count the number of each degree
-degree_count <- summarise(group_by(import, degree), count = length(id)) 
-degree_count <- arrange(degree_count, count)
+# degree_count <- summarise(group_by(import, degree), count = length(id)) 
+# degree_count <- arrange(degree_count, count)
 
 # Throw away a few data points that have bad years.
 historical <- filter(historical, year > 1800)
@@ -64,5 +64,4 @@ historical <- filter(historical, year > 1800)
 h_diss <- filter(historical, degree == "Ph.D.")
 
 # Remove some temporary objects we no longer need
-rm(import)
-
+rm(import, historical, historical_subjects)

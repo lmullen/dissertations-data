@@ -291,3 +291,5 @@ historical <- filter(historical, year > 1800)
 # Having limited the data frame to historical work, let's limit it to PhDs 
 h_diss2 <- filter(historical, degree == "Ph.D.")
 
+# Clean up unneeded objects
+rm(historical_subjects, universities_to_delete, raw, historical)
