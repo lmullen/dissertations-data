@@ -254,7 +254,7 @@ $.get('/downloads/historical-dissertations/location/universities-geocoded-2.csv'
 Finally, a redo of all the page counts by university. (Because nothing makes a post popular like giving every historian in North America a little blue dot of their own to look for.)
 
 ```{r create-pngs-by-university}
-for (uni_name in university_count$university[1:179]) {
+for (uni_name in university_count$university) {
   fname <- str_c("pages-2-", 
                 tolower(str_replace_all(uni_name, ' ', '-')),
                 "png")
