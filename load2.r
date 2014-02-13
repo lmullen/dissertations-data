@@ -247,7 +247,7 @@ universities_to_delete <- c(
   "Oxford Centre for Mission Studies (United Kingdom).",
   "University of Stirling (United Kingdom).",
   "University of Rochester School of Nursing.",
-  "The University of Manchester (United Kingdom).".
+  "The University of Manchester (United Kingdom).",
   "Annenberg Research Institute.",
   "The RAND Graduate School.",
   "Saybrook Graduate School and Research Center.",
