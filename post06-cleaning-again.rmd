@@ -4,7 +4,11 @@
 library(dplyr)
 library(stringr)
 library(ggplot2)
+library(reshape2)
 library(knitr)
+library(foreach)
+opts_chunk$set(fig.width = 11, height = 7.75)
+theme_set(theme_gray(base_size = 12))
 source("load.r")
 source("load2.r")
 ```
@@ -101,6 +105,185 @@ ggplot() +
   ggtitle("Page lengths of history dissertations (blue) vs 'biography' dissertations (red)")
 ```
 
+As a last step, I'm dropping all universities with fewer than five dissertations that meet all these criteria. Looking through these universities, many of their dissertations seem like false positives, so this cut-off should clean up problems in the long tail.
+
+Making these changes to the data set gives us fewer dissertations: `r nrow(h_diss)` dissertations before, `r nrow(h_diss2)` after cleaning, which is `r nrow(h_diss) - nrow(h_diss2)` fewer dissertations. It's a messy process, but then the data is messy. Keep that in mind the next time you're impressed by a slick visualization.
+
 * * * * * * * * * * *
 
-H
+Now that the data is more thoroughly cleaned, I have redone some of the more significant visualizations from the earlier posts. 
+
+```{r define-scales}
+# Some standard scales for chart labels
+short_scale <- scale_x_continuous(breaks = seq(1950, 2010, 10),
+                                  labels = seq(1950, 2010, 10),
+                                  limits = c(1945, 2012))
+
+page_scale <- function(min_pages, max_pages, increment) {
+  scale <- scale_y_continuous(breaks = seq(min_pages, max_pages, increment),
+                              labels = seq(min_pages, max_pages, increment),
+                              limits = c(min_pages, max_pages))
+  return(scale)
+}
+```
+
+First, the number of dissertations per year.
+
+```{r number-of-dissertations-per-year-2}
+ggplot(h_diss2 %.%
+         group_by(year) %.%
+         summarise(count = length(id)),
+       aes(x = year, y = count)) +
+  geom_point() +
+  geom_line() +
+  ggtitle("Number of dissertations about history per year, 1945-2012") +
+  short_scale +
+  xlab(NULL) +
+  ylab("Dissertations")
+```
+
+Second, the mean and median page counts of history dissertations. These are slightly higher after cleaning the data more thoroughly.
+
+```{r calculate-average-pages-2}
+average_pages <- h_diss2 %.%
+  group_by(year) %.%
+  summarise(
+    mean = round(mean(pages, na.rm = TRUE)),
+    median = median(pages, na.rm = TRUE)) %.%
+  arrange(year)
+  
+average_pages_melted <- average_pages %.%
+   melt(id = "year")
+```
+
+```{r pages-mean-median-2}
+ggplot(average_pages_melted) +
+  geom_line(aes(x = year, y = value, color = variable)) +
+  short_scale +
+  page_scale(275, 400,25) +
+  labs(color = NULL) +
+  ylab("Pages") +
+  xlab(NULL) +
+  ggtitle("Mean and Median Length of History Dissertations, 1945-2012")
+```
+
+Third, a map of the locations where history dissertations were written.
+
+```{r}
+university_count <- read.csv("location/universities-geocoded-2.csv")
+```
+
+<style>
+#map {
+  height: 500px;
+  width: 800px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border: 1px solid gray;
+}
+
+#map img {
+  border:0;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.mycluster {
+  width: 40px;
+  background-color: lightcoral;
+  text-align: center;
+  font-size: 14px;
+}
+</style>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script>
+$("head").append('<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />');
+
+$("head").append('<link rel="stylesheet" href="/downloads/historical-dissertations/location/MarkerCluster.Default.css" />');
+</script>
+
+<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+<link rel="stylesheet" href="/downloads/historical-dissertations/location/MarkerCluster.css" />
+<script src="/downloads/historical-dissertations/location/leaflet.markercluster-src.js"></script>
+<script src="/downloads/historical-dissertations/location/leaflet.geocsv.js"></script>
+
+<div id="map"></div>
+
+<script>
+var map = L.map('map');
+var osmUrl='http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+var osmAttrib='Map data (c) OpenStreetMap contributors';
+var osm = new L.TileLayer(osmUrl, {attribution: osmAttrib});  	
+
+// start the map in the center of the United States
+map.setView(new L.LatLng(39.8, -95), 4);
+map.addLayer(osm);
+
+var markers = new L.MarkerClusterGroup({
+  iconCreateFunction: function (cluster) {
+    var markers = cluster.getAllChildMarkers();
+    var n = 0;
+    for (var i = 0; i < markers.length; i++) {
+      n += +markers[i].feature.properties["count"];
+    }
+    return L.divIcon({ html: n, className: 'mycluster', iconSize: L.point(50, 20) });
+  },
+});
+
+$.get('/downloads/historical-dissertations/location/universities-geocoded-2.csv', function(csvContents) {
+  var geoLayer = L.geoCsv(csvContents, {
+    titles: ["","university","count","lon","lat"],
+    firstLineTitles: true, 
+    fieldSeparator: ',',
+    latitudeTitle: 'lat',
+    longitudeTitle: 'lon',
+    onEachFeature: function (feature, layer) {
+      var popup = '';
+      popup += "<strong>" + feature.properties["university"] + "</strong>";
+      popup += "<br/>";
+      popup += "Dissertations about history: "
+      popup += feature.properties["count"] + ".";
+      layer.bindPopup(popup);
+    }
+  });
+  markers.addLayer(geoLayer);
+  map.addLayer(markers);
+});
+</script>
+
+Finally, a redo of all the page counts by university. (Because nothing makes a post popular like giving every historian in North America a little blue dot of their own to look for.)
+
+```{r create-pngs-by-university}
+for (uni_name in university_count$university[1:179]) {
+  fname <- str_c("pages-2-", 
+                tolower(str_replace_all(uni_name, ' ', '-')),
+                "png")
+  png(filename = str_c("figure/", fname),
+      width = 800, height = 600)
+  plot <- ggplot(data = filter(h_diss2, str_detect(university, uni_name)),
+                 aes(x = year, y = pages)) +
+    geom_jitter(color = "cornflowerblue", alpha = 0.75) +
+    geom_smooth(color = "darkblue") +
+    geom_smooth(data = h_diss2, aes(x = year, y = pages), color = "red") +
+    short_scale +
+    page_scale(0, 1000, 100) +
+    ggtitle(str_c("Length of history dissertations, profession (red) vs ",
+                  uni_name, " (blue)")) +
+    xlab(NULL) +
+    ylab("Pages")
+  print(plot)
+  dev.off()
+# }
+```
+
+```{r list-image-links}
+for (uni_name in university_count$university) {
+  fname <- str_c("pages-2-", 
+                tolower(str_replace_all(uni_name, ' ', '-')),
+                "png")
+  cat("\n")
+  cat(str_c(uni_name, "\n"))
+  cat(str_c("{% img /downloads/historical-dissertations/", fname, " %}\n"))
+}
+```
