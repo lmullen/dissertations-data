@@ -14,6 +14,11 @@ file "data/history-df.csv" => "data/history-raw.csv" do |t|
   sh "./csv2df.rb"
 end
 
+desc "Geocode the universities"
+file "location/universities-geocoded-2.csv" => "geocode.r" do |t|
+  sh "R --vanilla CMD BATCH geocode.r"
+end
+
 rule ".md" => ".rmd" do |t|
   sh %[Rscript --vanilla -e "library(knitr); knit('#{t.source}');"]
 end
