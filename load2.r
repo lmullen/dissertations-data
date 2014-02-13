@@ -240,7 +240,18 @@ universities_to_delete <- c(
   "Widener University, Institute for Graduate Clinical Psychology.",
   "Wilmington College Division of Nursing (Delaware).",
   "Wisconsin School of Professional Psychology, Inc..",
-  "Yale University, School of Forestry and Environmental Studies."
+  "Yale University, School of Forestry and Environmental Studies.",
+  "Georgia State University - College of Education.",
+  "California School of Professional Psychology - Berkeley/Alameda.",
+  "University of Nebraska Medical Center.",
+  "Oxford Centre for Mission Studies (United Kingdom).",
+  "University of Stirling (United Kingdom).",
+  "University of Rochester School of Nursing.",
+  "The University of Manchester (United Kingdom).".
+  "Annenberg Research Institute.",
+  "The RAND Graduate School.",
+  "Saybrook Graduate School and Research Center.",
+  "The Union for Experimenting Colleges and Universities." 
 )
 
 # Remove any dissertation from one of the universities above
@@ -291,5 +302,22 @@ historical <- filter(historical, year > 1800)
 # Having limited the data frame to historical work, let's limit it to PhDs 
 h_diss2 <- filter(historical, degree == "Ph.D.")
 
+# Create a table of the number of dissertations by university
+university_count <- h_diss2 %.%
+  group_by(university) %.%
+  summarise(count = length(id),
+            earliest_year = min(year),
+            latest_year = max(year)) %.%
+  arrange(desc(count))
+
+# Remove dissertations from universities that have produced fewer than 5 disses
+university_count <- university_count %.% filter(count >= 5)
+more_unis_to_cut <- university_count %.% filter(count < 5)
+more_unis_to_cut <- more_unis_to_cut$university
+
+h_diss2 <- h_diss2 %.%
+  filter(!(university %in% more_unis_to_cut))
+
 # Clean up unneeded objects
-rm(historical_subjects, universities_to_delete, raw, historical)
+rm(historical_subjects, universities_to_delete, 
+   raw, historical, more_unis_to_cut)
