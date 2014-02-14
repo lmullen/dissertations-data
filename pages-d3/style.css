@@ -1,4 +1,4 @@
-#viz svg {
-  width: 800px;
-  height: 600px;
+.diss-point {
+  fill: blue;
+  fill-opacity: 0.1;
 }

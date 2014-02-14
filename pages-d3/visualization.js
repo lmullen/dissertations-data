@@ -1,46 +1,52 @@
-var viz = d3.select("#viz").append("svg");
+var width = 800;
+var height = 500;
 
-nv.addGraph(function() {
-  var chart = nv.models.scatterChart()
-  .showDistX(true)
-  .showDistY(true)
-  .color(d3.scale.category10().range());
+var viz = d3.select("#viz")
+.append("svg")
+.attr("width", width)
+.attr("height", height);
 
-  chart.xAxis.tickFormat(d3.format('.02f'));
-  chart.yAxis.tickFormat(d3.format('.02f'));
+queue()
+.defer(d3.csv, "h_diss2_web.csv")
+.await(main);
 
-  viz
-  .datum(data(3,20))
-  .transition().duration(500)
-  .call(chart);
+function main(error, pages_data) {
 
-  nv.utils.windowResize(chart.update);
+  var scale_x = d3.scale.linear()
+  .domain([1950, 2012])
+  .range([0, width]);
 
-  return chart;
-});
+  var axis_x = d3.svg.axis()
+  .scale(scale_x)
+  .orient("bottom")
+  .ticks(10);
 
+  var scale_y = d3.scale.linear()
+  .domain([0, d3.max(pages_data, function(d) {return +d.pages})])
+  .range([height, 0]);
 
-data = function(groups, points) {
-  var data = [],
-  shapes = ['circle', 'cross', 'triangle-up', 'triangle-down', 'diamond', 'square'],
-  random = d3.random.normal();
+  var axis_x = d3.svg.axis()
+  .scale(scale_y)
+  .orient("left")
+  .ticks(10);
 
-  for (i = 0; i < groups; i++) {
-    data.push({
-      key: 'Group ' + i,
-      values: []
-    });
+  viz.selectAll("circle")
+  .data(pages_data)
+  .enter()
+  .append("circle")
+  .attr("class", "diss-point")
+  .attr("cx", function(d) {
+    return scale_x(+d.year);
+  })
+  .attr("cy", function(d) {
+    return scale_y(+d.pages);
+  })
+  .attr("r", 5);
 
-    for (j = 0; j < points; j++) {
-      data[i].values.push({
-        x: random()
-      , y: random()
-      , size: Math.random()
-    //, shape: shapes[j % 6]
-      });
-    }
-  }
+  viz.append("g")
+  .attr("class", "x axis")
+  .call(axis_x)
+  .attr("transform", "translate(" + (chart_width + 1) + ",0)")
 
-  return data;
-}
+};
 
