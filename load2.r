@@ -305,7 +305,7 @@ h_diss2 <- filter(historical, degree == "Ph.D.")
 # Create a table of the number of dissertations by university
 university_count <- h_diss2 %.%
   group_by(university) %.%
-  summarise(count = length(id),
+  summarise(count = n(),
             earliest_year = min(year),
             latest_year = max(year)) %.%
   arrange(desc(count))
