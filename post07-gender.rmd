@@ -1,0 +1,116 @@
+
+```{r load-data}
+library(ggplot2)
+library(dplyr)
+library(stringr)
+library(reshape2)
+library(knitr)
+library(iterators)
+library(foreach)
+library(doParallel)
+registerDoParallel()
+library(gender)
+h_diss2 <- read.csv("data/h_diss2.csv", stringsAsFactors = FALSE)
+gender_df <- data.frame(name = h_diss2$author, 
+                        year = h_diss2$year,
+                        stringsAsFactors = FALSE)
+```
+
+```{r create-name-field}
+gender_df$name <- tolower(gender_df$name)
+gender_df$name <- str_trim(str_extract(
+  str_extract(gender_df$name, ", [a-z'-]{2,}"), "[a-z'-]{2,}"))
+```
+
+```{r function-to-determine-years}
+# Assume that a dissertator was between 20 and 50 years old, but don't look for
+# years before 1880
+year_range <- function(year) {
+  floor <- 1880
+  low <- ifelse(year - 50 >= floor, year - 50, floor)  
+  high <- ifelse(year - 20 >= floor, year - 20, floor)  
+  return(c(low, high))
+}
+```
+
+
+```{r find-genders}
+# This is super slow. So we cache the results.
+# But there has to be a better way to do this.
+if (file.exists("data/gender_df.csv")) {
+  gender_df <- read.csv("data/gender_df.csv", stringsAsFactors = FALSE)
+} else{
+  temp <- foreach(i=iter(gender_df, by='row'), .combine = rbind) %dopar% {
+    gender(i$name, years = year_range(i$year))
+    }
+  gender_df2 <- cbind(h_diss2, temp, stringsAsFactors = FALSE)
+  gender_df$gender[is.na(gender_df$gender)] <- "unknown"
+  write.csv(gender_df, "data/gender_df.csv")
+  rm(temp)
+}
+```
+
+One of the useful questions that can be asked of any data set is about the significance of gender. Unfortunately almost all of the data sets that I have gotten to analyze don't record gender. I'm willing to hazard a guess that that is true for many if not most data sets of interest to historians. However, many data sets, like the one I'm working on for history dissertations, do include a list of names, and first names are a pretty good indicator of gender.
+
+But names are an imperfect indicator of gender. To begin with, you need a list of male and female names to assign a gender to a record. (There are a little under 12 thousand unique first names in the dissertations data set.) But the gender associated with names also varies over time. (Curiously, it seems that names tend to switch from male to female, but not the other way round.) [Cameron Blevins](http://www.cameronblevins.org/) had the really smart idea to look up the gender of names as they vary over time by using [Social Security Administration's names data set](http://catalog.data.gov/dataset/baby-names-from-social-security-card-applications-national-level-data). He and I are working together to compare the usefulness of his method in our respective data sets, so I'll write about the details later. (In the mean time, here is Cameron's [implementation in Python](https://github.com/cblevins/Gender-ID-By-Time) and an [R package](https://github.com/lmullen/gender) that I wrote. The READMEs explain more about the method.)
+
+Using that method, I've guessed the gender of the frst names in the dissertations data set, and produced this chart, which shows the number of dissertations produced in absolute terms.(The "unknowns" are names which did not appear in the Social Security Administration data for the given time period; as you would expect, in most cases they are non-European names.)
+
+```{r plot-gender}
+opts_chunk$set(fig.width = 11, height = 7.75)
+theme_set(theme_gray(base_size = 12))
+short_scale <- scale_x_continuous(breaks = seq(1950, 2010, 10),
+                                  labels = seq(1950, 2010, 10),
+                                  limits = c(1950, 2012))
+
+ggplot(gender_df, aes(x = year, fill = gender)) + 
+  geom_bar(binwidth = 1) +
+  short_scale +
+  ggtitle("History Dissertations by Gender, 1950-2012") +
+  xlab(NULL) + ylab("dissertations")
+```
+
+```{r dissertations-by-gender-summarised}
+gender_table <- gender_df %.%
+  select(year, gender) %.%
+  filter(year >= 1950) %.%
+  group_by(year, gender) %.%
+  summarise(n = n())
+
+gender_table <- dcast(gender_table, year ~ gender ) 
+
+gender_table[is.na(gender_table)] <- 0
+
+gender_table <- gender_table %.% 
+  mutate(
+    female_proportion = female / (either + female + male + unknown),
+    male_proportion = male / (either + female + male + unknown),
+    unknown_proportion = unknown / (either + female + male + unknown),
+    female_proportion = female / (either + female + male + unknown)
+    ) %.%
+  select(year, female_proportion, male_proportion, unknown_proportion)
+```
+
+Another way to look this chart is to look at the proportion of male and female writers of history dissertations over time, which smooths out changes in the absolute number of dissertations produced. As you can see, the proportion of dissertations written by women has steadily increased since the 1950s. It appears to be plateauing with men producing a few percentage points more dissertations than women. (Keep in mind though that the number of names I was unable to identify is substantial, about 10% for each year through the 2000s.)
+
+```{r dissertations-by-gender-proportion}
+gender_table_melt <- melt(gender_table, id.vars ="year")
+ggplot(gender_table_melt, aes(x = year, y = value, fill = variable)) +
+  geom_bar(binwidth = 1, stat = "identity") +
+  short_scale +
+  ggtitle("History Dissertations by Gender (Proportions), 1945-2012") +
+  xlab(NULL) + ylab("dissertations")
+```
+
+If you want the percentages of dissertations written by men and women in tabular form, here you go.)
+
+```{r gender-table}
+
+kable(gender_table, format = "pandoc", digits = 2)
+```
+
+
+
+
+
+
