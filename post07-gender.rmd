@@ -1,5 +1,5 @@
 
-```{r load-data}
+```{r load-packages}
 library(ggplot2)
 library(dplyr)
 library(stringr)
@@ -8,28 +8,39 @@ library(knitr)
 library(iterators)
 library(foreach)
 library(doParallel)
-registerDoParallel()
 library(gender)
-h_diss2 <- read.csv("data/h_diss2.csv", stringsAsFactors = FALSE)
-gender_df <- data.frame(name = h_diss2$author, 
-                        year = h_diss2$year,
-                        stringsAsFactors = FALSE)
+registerDoParallel()
+opts_chunk$set(fig.width = 11, height = 7.75, dev = c("png", "svg", "pdf"))
+theme_set(theme_gray(base_size = 12))
+```
+
+```{r load-data}
+if (!file.exists("data/gender_df.csv")) {
+  h_diss2 <- read.csv("data/h_diss2.csv", stringsAsFactors = FALSE)
+  gender_df <- data.frame(name = h_diss2$author, 
+                          year = h_diss2$year,
+                          stringsAsFactors = FALSE)
+}
 ```
 
 ```{r create-name-field}
-gender_df$name <- tolower(gender_df$name)
-gender_df$name <- str_trim(str_extract(
-  str_extract(gender_df$name, ", [a-z'-]{2,}"), "[a-z'-]{2,}"))
+if (!file.exists("data/gender_df.csv")) {
+  gender_df$name <- tolower(gender_df$name)
+  gender_df$name <- str_trim(str_extract(
+    str_extract(gender_df$name, ", [a-z'-]{2,}"), "[a-z'-]{2,}"))
+}
 ```
 
 ```{r function-to-determine-years}
 # Assume that a dissertator was between 20 and 50 years old, but don't look for
 # years before 1880
-year_range <- function(year) {
-  floor <- 1880
-  low <- ifelse(year - 50 >= floor, year - 50, floor)  
-  high <- ifelse(year - 20 >= floor, year - 20, floor)  
-  return(c(low, high))
+if (!file.exists("data/gender_df.csv")) {
+  year_range <- function(year) {
+    floor <- 1880
+    low <- ifelse(year - 50 >= floor, year - 50, floor)  
+    high <- ifelse(year - 20 >= floor, year - 20, floor)  
+    return(c(low, high))
+  }
 }
 ```
 
@@ -39,7 +50,7 @@ year_range <- function(year) {
 # But there has to be a better way to do this.
 if (file.exists("data/gender_df.csv")) {
   gender_df <- read.csv("data/gender_df.csv", stringsAsFactors = FALSE)
-} else{
+} else {
   temp <- foreach(i=iter(gender_df, by='row'), .combine = rbind) %dopar% {
     gender(i$name, years = year_range(i$year))
     }
@@ -57,8 +68,6 @@ But names are an imperfect indicator of gender. To begin with, you need a list o
 Using that method, I've guessed the gender of the frst names in the dissertations data set, and produced this chart, which shows the number of dissertations produced in absolute terms.(The "unknowns" are names which did not appear in the Social Security Administration data for the given time period; as you would expect, in most cases they are non-European names.)
 
 ```{r plot-gender}
-opts_chunk$set(fig.width = 11, height = 7.75)
-theme_set(theme_gray(base_size = 12))
 short_scale <- scale_x_continuous(breaks = seq(1950, 2010, 10),
                                   labels = seq(1950, 2010, 10),
                                   limits = c(1950, 2012))
@@ -67,7 +76,8 @@ ggplot(gender_df, aes(x = year, fill = gender)) +
   geom_bar(binwidth = 1) +
   short_scale +
   ggtitle("History Dissertations by Gender, 1950-2012") +
-  xlab(NULL) + ylab("dissertations")
+  xlab(NULL) + ylab("dissertations") +
+  theme(legend.position = "bottom")
 ```
 
 ```{r dissertations-by-gender-summarised}
@@ -98,8 +108,10 @@ gender_table_melt <- melt(gender_table, id.vars ="year")
 ggplot(gender_table_melt, aes(x = year, y = value, fill = variable)) +
   geom_bar(binwidth = 1, stat = "identity") +
   short_scale +
-  ggtitle("History Dissertations by Gender (Proportions), 1945-2012") +
-  xlab(NULL) + ylab("dissertations")
+  ggtitle("History Dissertations by Gender (Proportions), 1950-2012") +
+  xlab(NULL) + ylab(NULL) +
+  theme(legend.position = "bottom") +
+  theme(legend.title = element_blank())
 ```
 
 If you want the percentages of dissertations written by men and women in tabular form, here you go.)
