@@ -318,9 +318,8 @@ more_unis_to_cut <- more_unis_to_cut$university
 h_diss2 <- h_diss2 %.%
   filter(!(university %in% more_unis_to_cut))
 
-unis_to_keep <- university_count$university[1:146]
-
 # Make a smaller version for the web
+unis_to_keep <- university_count$university[1:146]
 h_diss2_web <- h_diss2 %.%
   select(pages, university, year) %.%
   filter(1950 <= year, year <= 2012)  %.%
