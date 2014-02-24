@@ -36,4 +36,6 @@ desc "Copy figures to blog directory"
 task :copy_to_blog do
   blog_img  = "/home/lmullen/dev/lincolnmullen.com/source/downloads/historical-dissertations/"
   Dir.glob("figure/*.png") {|f| FileUtils.cp File.expand_path(f), blog_img }
+  Dir.glob("figure/*.svg") {|f| FileUtils.cp File.expand_path(f), blog_img }
+  Dir.glob("figure/*.pdf") {|f| FileUtils.cp File.expand_path(f), blog_img }
 end
